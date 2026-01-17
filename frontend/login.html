@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Task API</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Task API</h1>
+    </div>
+
+    <div class="container">
+        <div class="card" style="max-width: 500px; margin: 0 auto;">
+            <h2>Acesse sua conta</h2>
+
+            <div class="form-tabs">
+                <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+                <button class="tab-btn" onclick="switchTab('signup')">Cadastro</button>
+            </div>
+
+            <!-- Formulário de Login -->
+            <div id="loginTab" class="tab-content active">
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginUser">Usuário</label>
+                        <input type="text" id="loginUser" name="user" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="loginPassword">Senha</label>
+                        <input type="password" id="loginPassword" name="password" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-block">Entrar</button>
+                </form>
+            </div>
+
+            <!-- Formulário de Cadastro -->
+            <div id="signupTab" class="tab-content">
+                <form id="signupForm" onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label for="signupUser">Usuário</label>
+                        <input type="text" id="signupUser" name="user" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signupPassword">Senha</label>
+                        <input type="password" id="signupPassword" name="password" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signupPasswordConfirm">Confirmar Senha</label>
+                        <input type="password" id="signupPasswordConfirm" name="passwordConfirm" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-block">Criar Conta</button>
+                </form>
+            </div>
+
+            <div class="text-center mt-20">
+                <a href="index.html" style="color: var(--text-secondary);">← Voltar para página inicial</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Redireciona se já estiver autenticado
+        if (isAuthenticated()) {
+            window.location.href = 'menu.html';
+        }
+
+        // Alterna entre as abas de login e signup
+        function switchTab(tab) {
+            const loginTab = document.getElementById('loginTab');
+            const signupTab = document.getElementById('signupTab');
+            const tabBtns = document.querySelectorAll('.tab-btn');
+
+            if (tab === 'login') {
+                loginTab.classList.add('active');
+                signupTab.classList.remove('active');
+                tabBtns[0].classList.add('active');
+                tabBtns[1].classList.remove('active');
+            } else {
+                loginTab.classList.remove('active');
+                signupTab.classList.add('active');
+                tabBtns[0].classList.remove('active');
+                tabBtns[1].classList.add('active');
+            }
+        }
+
+        // Manipula o submit do formulário de login
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const user = document.getElementById('loginUser').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await login(user, password);
+                
+                if (response.token) {
+                    saveToken(response.token);
+                    showSuccess(response.message || 'Login realizado com sucesso!');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'menu.html';
+                    }, 1000);
+                }
+            } catch (error) {
+                showError(error.message, error.error);
+            }
+        }
+
+        // Manipula o submit do formulário de cadastro
+        async function handleSignup(event) {
+            event.preventDefault();
+            
+            const user = document.getElementById('signupUser').value;
+            const password = document.getElementById('signupPassword').value;
+            const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+
+            // Valida se as senhas são iguais
+            if (password !== passwordConfirm) {
+                showError('As senhas não coincidem', 'Por favor, digite senhas iguais nos dois campos');
+                return;
+            }
+
+            try {
+                const response = await signup(user, password);
+                
+                if (response.token) {
+                    saveToken(response.token);
+                    showSuccess(response.message || 'Cadastro realizado com sucesso!');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'menu.html';
+                    }, 1000);
+                }
+            } catch (error) {
+                showError(error.message, error.error);
+            }
+        }
+    </script>
+</body>
+</html>

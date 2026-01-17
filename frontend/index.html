@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task API - Sistema de Gerenciamento de Notificações</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Task API - Sistema de Gerenciamento de Notificações</h1>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Bem-vindo ao Task API</h2>
+            <p>
+                O Task API é um sistema completo de gerenciamento e notificação de tarefas. 
+                Com ele, você pode criar tarefas com notificações programadas que serão enviadas 
+                para os endpoints configurados no horário especificado.
+            </p>
+
+            <h3>Funcionalidades</h3>
+            <ul>
+                <li>📝 Criar e gerenciar tarefas com notificações programadas</li>
+                <li>🔔 Configurar múltiplos endpoints para receber notificações</li>
+                <li>⏰ Agendar notificações para datas e horários específicos</li>
+                <li>🔒 Sistema de autenticação seguro</li>
+                <li>📊 Visualizar e editar suas tarefas e configurações</li>
+            </ul>
+
+            <h3>Como Funciona</h3>
+            <img src="https://via.placeholder.com/800x400/90EE90/000000?text=Esquematico+da+API" 
+                 alt="Esquemático da API" 
+                 class="schema-image">
+            <p class="text-center" style="color: var(--text-secondary); margin-top: 10px;">
+                <em>Substitua esta imagem pelo esquemático do Excalidraw</em>
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>Endpoints Disponíveis</h2>
+            
+            <div class="endpoints-list">
+                <h3>Autenticação</h3>
+                <p><code>POST /login</code> - Realizar login</p>
+                <p><code>POST /signup</code> - Criar nova conta</p>
+
+                <h3>Gerenciamento de Subscribes</h3>
+                <p><code>GET /subscribe</code> - Listar todos os subscribes</p>
+                <p><code>GET /subscribe/:id</code> - Obter detalhes de um subscribe</p>
+                <p><code>POST /subscribe</code> - Criar novo subscribe</p>
+                <p><code>PUT /subscribe/:id</code> - Atualizar subscribe</p>
+                <p><code>DELETE /subscribe/:id</code> - Remover subscribe</p>
+                <p><code>GET /protocols</code> - Listar protocolos disponíveis</p>
+
+                <h3>Gerenciamento de Tasks</h3>
+                <p><code>GET /task</code> - Listar todas as tasks</p>
+                <p><code>GET /task/:id</code> - Obter detalhes de uma task</p>
+                <p><code>POST /task</code> - Criar nova task</p>
+                <p><code>PUT /task/:id</code> - Atualizar task</p>
+                <p><code>DELETE /task/:id</code> - Remover task</p>
+            </div>
+        </div>
+
+        <div class="text-center mt-20">
+            <a href="login.html" class="btn" style="padding: 15px 40px; font-size: 18px;">
+                Começar Agora
+            </a>
+        </div>
+    </div>
+</body>
+</html>

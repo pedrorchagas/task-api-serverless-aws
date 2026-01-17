@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscribes - Task API</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Gerenciamento de Subscribes</h1>
+    </div>
+
+    <div class="container">
+        <!-- Formulário para novo subscribe -->
+        <div class="card">
+            <h2>Adicionar Novo Subscribe</h2>
+            <form id="createSubscribeForm" onsubmit="handleCreateSubscribe(event)">
+                <div class="form-group">
+                    <label for="endpoint">Endpoint</label>
+                    <input type="text" id="endpoint" name="endpoint" placeholder="exemplo@email.com ou +5511999999999" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Protocolo</label>
+                    <div id="protocolOptions" class="radio-group">
+                        <div class="loading">Carregando opções...</div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">Adicionar Subscribe</button>
+            </form>
+        </div>
+
+        <!-- Lista de subscribes -->
+        <div class="card">
+            <h2>Meus Subscribes</h2>
+            <div id="subscribesContainer">
+                <div class="loading">Carregando subscribes...</div>
+            </div>
+        </div>
+
+        <div class="text-center mt-20">
+            <a href="menu.html" class="btn">← Voltar ao Menu</a>
+        </div>
+    </div>
+
+    <!-- Modal para editar subscribe -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Editar Subscribe</h2>
+                <span class="modal-close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <form id="editSubscribeForm" onsubmit="handleEditSubscribe(event)">
+                <input type="hidden" id="editSubscribeId">
+                
+                <div class="form-group">
+                    <label for="editEndpoint">Endpoint</label>
+                    <input type="text" id="editEndpoint" name="endpoint" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Protocolo</label>
+                    <div id="editProtocolOptions" class="radio-group"></div>
+                </div>
+
+                <button type="submit" class="btn btn-block">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Verifica se está autenticado
+        requireAuth();
+
+        let protocolOptions = [];
+        let subscribes = [];
+
+        // Carrega dados ao iniciar a página
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProtocols();
+            loadSubscribes();
+        });
+
+        // Carrega as opções de protocolos
+        async function loadProtocols() {
+            try {
+                const response = await getProtocolOptions();
+                protocolOptions = response.protocol_options || [];
+                renderProtocolOptions('protocolOptions', protocolOptions);
+            } catch (error) {
+                showError(error.message, error.error);
+            }
+        }
+
+        // Renderiza as opções de protocolo
+        function renderProtocolOptions(containerId, options, selectedValue = null) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            options.forEach((protocol, index) => {
+                const option = document.createElement('div');
+                option.className = 'radio-option';
+                
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.id = `${containerId}_${protocol}`;
+                input.name = containerId === 'protocolOptions' ? 'protocol' : 'editProtocol';
+                input.value = protocol;
+                input.required = true;
+                
+                if (selectedValue && protocol === selectedValue) {
+                    input.checked = true;
+                } else if (!selectedValue && index === 0) {
+                    input.checked = true;
+                }
+                
+                const label = document.createElement('label');
+                label.htmlFor = `${containerId}_${protocol}`;
+                label.textContent = protocol;
+                
+                option.appendChild(input);
+                option.appendChild(label);
+                container.appendChild(option);
+            });
+        }
+
+        // Carrega a lista de subscribes
+        async function loadSubscribes() {
+            try {
+                const response = await getSubscribes();
+                subscribes = response.subscribes || [];
+                renderSubscribes();
+            } catch (error) {
+                document.getElementById('subscribesContainer').innerHTML = 
+                    `<p style="color: var(--error-color);">Erro ao carregar subscribes: ${error.message}</p>`;
+                showError(error.message, error.error);
+            }
+        }
+
+        // Renderiza a tabela de subscribes
+        function renderSubscribes() {
+            const container = document.getElementById('subscribesContainer');
+            
+            if (subscribes.length === 0) {
+                container.innerHTML = '<p>Nenhum subscribe cadastrado.</p>';
+                return;
+            }
+
+            const table = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Endpoint</th>
+                            <th>Protocolo</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${subscribes.map(sub => `
+                            <tr>
+                                <td>${sub.id}</td>
+                                <td>${sub.endpoint}</td>
+                                <td>${sub.protocol}</td>
+                                <td>${sub.active ? '✅ Ativo' : '❌ Inativo'}</td>
+                                <td class="table-actions">
+                                    <button class="btn btn-small" onclick="openEditModal('${sub.id}')">Editar</button>
+                                    <button class="btn btn-small btn-danger" onclick="handleDeleteSubscribe('${sub.id}')">Excluir</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = table;
+        }
+
+        // Manipula a criação de novo subscribe
+        async function handleCreateSubscribe(event) {
+            event.preventDefault();
+            
+            const endpoint = document.getElementById('endpoint').value;
+            const protocol = document.querySelector('input[name="protocol"]:checked').value;
+
+            try {
+                const response = await createSubscribe(endpoint, protocol);
+                showSuccess(response.message || 'Subscribe criado com sucesso!');
+                
+                // Limpa o formulário
+                document.getElementById('createSubscribeForm').reset();
+                
+                // Recarrega a lista
+                await loadSubscribes();
+            } catch (error) {
+                showError(error.message, error.error);
+            }
+        }
+
+        // Abre o modal de edição
+        async function openEditModal(subscribeId) {
+            try {
+                const response = await getSubscribeById(subscribeId);
+                const subscribe = response;
+                
+                document.getElementById('editSubscribeId').value = subscribe.id;
+                document.getElementById('editEndpoint').value = subscribe.endpoint;
+                
+                renderProtocolOptions('editProtocolOptions', protocolOptions, subscribe.protocol);
+                
+                document.getElementById('editModal').classList.add('active');
+            } catch (error) {
+                showError(error.message, error.error);
+            }
+        }
+
+        // Fecha o modal de edição
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+        }
+
+        // Manipula a edição de subscribe
+        async function handleEditSubscribe(event) {
+            event.preventDefault();
+            
+            const subscribeId = document.getElementById('editSubscribeId').value;
+            const endpoint = document.getElementById('editEndpoint').value;
+            const protocol = document.querySelector('input[name="editProtocol"]:checked').value;
+
+            try {
+                const response = await updateSubscribe(subscribeId, endpoint, protocol);
+                showSuccess(response.message || 'Subscribe atualizado com sucesso!');
+                
+                closeEditModal();
+                await loadSubscribes();
+            } catch (error) {
+                showError(error.message, error.error);
+            }
+        }
+
+        // Manipula a exclusão de subscribe
+        async function handleDeleteSubscribe(subscribeId) {
+            if (!confirm('Deseja realmente excluir este subscribe?')) {
+                return;
+            }
+
+            try {
+                const response = await deleteSubscribe(subscribeId);
+                showSuccess(response.message || 'Subscribe excluído com sucesso!');
+                await loadSubscribes();
+            } catch (error) {
+                showError(error.message, error.error);
+            }
+        }
+
+        // Fecha o modal ao clicar fora dele
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                closeEditModal();
+            }
+        }
+    </script>
+</body>
+</html>

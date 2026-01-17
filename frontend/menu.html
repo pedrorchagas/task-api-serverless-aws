@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu - Task API</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Task API - Menu Principal</h1>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Bem-vindo!</h2>
+            <p>Escolha uma das opções abaixo para gerenciar suas notificações e configurações.</p>
+
+            <div class="menu-grid">
+                <a href="user-info.html" class="menu-card">
+                    <h3>📧 Subscribes</h3>
+                    <p>Gerencie os endpoints que receberão suas notificações</p>
+                </a>
+
+                <a href="tasks.html" class="menu-card">
+                    <h3>📝 Tasks</h3>
+                    <p>Crie e gerencie suas tarefas com notificações programadas</p>
+                </a>
+            </div>
+
+            <div class="text-center mt-20">
+                <button onclick="handleLogout()" class="btn btn-danger">
+                    Sair
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Verifica se está autenticado
+        requireAuth();
+
+        // Manipula o logout
+        function handleLogout() {
+            if (confirm('Deseja realmente sair?')) {
+                logout();
+            }
+        }
+    </script>
+</body>
+</html>

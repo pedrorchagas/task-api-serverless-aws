@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasks - Task API</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Gerenciamento de Tasks</h1>
+    </div>
+
+    <div class="container">
+        <!-- Formulário para nova task -->
+        <div class="card">
+            <h2>Criar Nova Task</h2>
+            <form id="createTaskForm" onsubmit="handleCreateTask(event)">
+                <div class="form-group">
+                    <label for="subject">Assunto/Título</label>
+                    <input type="text" id="subject" name="subject" placeholder="Ex: Reunião importante" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="body">Mensagem</label>
+                    <textarea id="body" name="body" placeholder="Digite a mensagem da notificação..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="send_in">Data e Hora de Envio</label>
+                    <input type="datetime-local" id="send_in" name="send_in" required>
+                </div>
+
+                <button type="submit" class="btn">Criar Task</button>
+            </form>
+        </div>
+
+        <!-- Lista de tasks -->
+        <div class="card">
+            <h2>Minhas Tasks</h2>
+            <div id="tasksContainer">
+                <div class="loading">Carregando tasks...</div>
+            </div>
+        </div>
+
+        <div class="text-center mt-20">
+            <a href="menu.html" class="btn">← Voltar ao Menu</a>
+        </div>
+    </div>
+
+    <!-- Modal para editar task -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Editar Task</h2>
+                <span class="modal-close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <form id="editTaskForm" onsubmit="handleEditTask(event)">
+                <input type="hidden" id="editTaskId">
+                
+                <div class="form-group">
+                    <label for="editSubject">Assunto/Título</label>
+                    <input type="text" id="editSubject" name="subject" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editBody">Mensagem</label>
+                    <textarea id="editBody" name="body" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="editSendIn">Data e Hora de Envio</label>
+                    <input type="datetime-local" id="editSendIn" name="send_in" required>
+                </div>
+
+                <button type="submit" class="btn btn-block">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Verifica se está autenticado
+        requireAuth();
+
+        let tasks = [];
+
+        // Carrega dados ao iniciar a página
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTasks();
+        });
+
+        // Carrega a lista de tasks
+        async function loadTasks() {
+            try {
+                const response = await getTasks();
+                tasks = response.tasks || [];
+                renderTasks();
+            } catch (error) {
+                document.getElementById('tasksContainer').innerHTML = 
+                    `<p style="color: var(--error-color);">Erro ao carregar tasks: ${error.message}</p>`;
+                showError(error.message, error.error);
+            }
+        }
+
+        // Renderiza a tabela de tasks
+        function renderTasks() {
+            const container = document.getElementById('tasksContainer');
+            
+            if (tasks.length === 0) {
+                container.innerHTML = '<p>Nenhuma task cadastrada.</p>';
+                return;
+            }
+
+            const table = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Assunto</th>
+                            <th>Mensagem</th>
+                            <th>Enviar em</th>
+                            <th>Criado em</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tasks.map(task => `
+                            <tr>
+                                <td>${task.id}</td>
+                                <td>${task.subject}</td>
+                                <td>${truncateText(task.body, 50)}</td>
+                                <td>${formatDate(task.send_in)}</td>
+                                <td>${formatDate(task.created_at)}</td>
+                                <td class="table-actions">
+                                    <button class="btn btn-small" onclick="openEditModal('${task.id}')">Editar</button>
+                                    <button class="btn btn-small btn-danger" onclick="handleDeleteTask('${task.id}')">Excluir</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = table;
+        }
+
+        // Trunca texto longo
+        function truncateText(text, maxLength) {
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength) + '...';
+        }
+
+        // Manipula a criação de nova task
+        async function handleCreateTask(event) {
+            event.preventDefault();
+            
+            const subject = document.getElementById('subject').value;
+            const body = document.getElementById('body').value;
+            const send_in = toISOString(document.getElementById('send_in').value);
+
+            try {
+                const response = await createTask(subject, body, send_in);
+                showSuccess(response.message || 'Task criada com sucesso!');
+                
+                // Limpa o formulário
+                document.getElementById('createTaskForm').reset();
+                
+                // Recarrega a lista
+                await loadTasks();
+            } catch (error) {
+                showError(error.message, error.error);
+            }
+        }
+
+        // Abre o modal de edição
+        async function openEditModal(taskId) {
+            try {
+                const response = await getTaskById(taskId);
+                const task = response.task;
+                
+                document.getElementById('editTaskId').value = task.id;
+                document.getElementById('editSubject').value = task.subject;
+                document.getElementById('editBody').value = task.body;
+                
+                // Converte a data ISO para o formato datetime-local
+                const date = new Date(task.send_in);
+                const localDateTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+                    .toISOString()
+                    .slice(0, 16);
+                document.getElementById('editSendIn').value = localDateTime;
+                
+                document.getElementById('editModal').classList.add('active');
+            } catch (error) {
+                showError(error.message, error.error);
+            }
+        }
+
+        // Fecha o modal de edição
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+        }
+
+        // Manipula a edição de task
+        async function handleEditTask(event) {
+            event.preventDefault();
+            
+            const taskId = document.getElementById('editTaskId').value;
+            const subject = document.getElementById('editSubject').value;
+            const body = document.getElementById('editBody').value;
+            const send_in = toISOString(document.getElementById('editSendIn').value);
+
+            try {
+                const response = await updateTask(taskId, subject, body, send_in);
+                showSuccess(response.message || 'Task atualizada com sucesso!');
+                
+                closeEditModal();
+                await loadTasks();
+            } catch (error) {
+                showError(error.message, error.error);
+            }
+        }
+
+        // Manipula a exclusão de task
+        async function handleDeleteTask(taskId) {
+            if (!confirm('Deseja realmente excluir esta task?')) {
+                return;
+            }
+
+            try {
+                const response = await deleteTask(taskId);
+                showSuccess(response.message || 'Task excluída com sucesso!');
+                await loadTasks();
+            } catch (error) {
+                showError(error.message, error.error);
+            }
+        }
+
+        // Fecha o modal ao clicar fora dele
+        window.onclick = function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                closeEditModal();
+            }
+        }
+    </script>
+</body>
+</html>
