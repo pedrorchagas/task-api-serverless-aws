@@ -1,0 +1,24 @@
+{
+  "name": "task",
+  "version": "1.0.0",
+  "description": "Função lambda do crud das tasks",
+  "keywords": [
+    "aws",
+    "lambda"
+  ],
+  "homepage": "https://github.com/pedrorchagas/task-api-serverless-aws#readme",
+  "bugs": {
+    "url": "https://github.com/pedrorchagas/task-api-serverless-aws/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pedrorchagas/task-api-serverless-aws.git"
+  },
+  "license": "ISC",
+  "author": "pedrorchagas",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
