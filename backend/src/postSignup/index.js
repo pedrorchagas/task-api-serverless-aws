@@ -1,7 +1,5 @@
-const signupController = require('./controllers/signup');
-
-const userService = require('../services/user');
-const dbHelper = require('../shared/dbHelper');
+const userService = require('../../shared/services/user');
+const dbHelper = require('../../shared/dbHelper');
 
 const create = async (event) => {
   await dbHelper.getConnection();

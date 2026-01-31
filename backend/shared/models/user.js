@@ -1,6 +1,6 @@
 const Dynamoose = require('dynamoose');
 const crypto = require('crypto');
-const constants = require('../helpers/constants');
+const constants = require('../constants');
 
 const pkUser = (userId) => `${constants.userType}#${userId}`;
 const skUser = () => constants.userType;

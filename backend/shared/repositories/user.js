@@ -1,5 +1,14 @@
 const UserModel = require('../models/user');
 
+const getUserByUsername = async (username) => {
+  const user = await UserModel.User.query('username').eq(username)
+    .using('gsi_username')
+    .limit(1)
+    .exec();
+
+  return user[0];
+};
+
 const createUser = async ({ username, password }) => {
   let user = new UserModel.User({
     username,
@@ -19,6 +28,7 @@ const hasUser = async ({ username }) => {
 };
 
 module.exports = {
+  getUserByUsername,
   createUser,
   hasUser,
 };

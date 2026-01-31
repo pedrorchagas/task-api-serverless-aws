@@ -1,6 +1,6 @@
 const argon2 = require('argon2');
+const jwt = require('jsonwebtoken');
 const userRepository = require('../repositories/user');
-const jwt = require('jsonwebtoken')
 
 const hashPassword = async (password) => {
   const hash = await argon2.hash(password);
@@ -50,10 +50,27 @@ const generateToken = async (user) => {
   return token;
 };
 
+const loginUser = async (user) => {
+  let token;
+  const storedUser = await userRepository.getUserByUsername(user.username);
+
+  if (await verifyPassword({
+    inputPassword: user.password,
+    storedHash: storedUser.password,
+  })) {
+    token = await generateToken(user);
+  } else {
+    throw new Error('Senha incorreta!');
+  }
+
+  return token;
+};
+
 module.exports = {
   hashPassword,
   verifyPassword,
   createUser,
   hasUser,
   generateToken,
+  loginUser,
 };
