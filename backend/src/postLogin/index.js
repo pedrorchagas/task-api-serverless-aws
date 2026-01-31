@@ -1,7 +1,7 @@
 const userService = require('../../shared/services/user');
 const dbHelper = require('../../shared/dbHelper');
 
-const login = async (event) => {
+const handler = async (event) => {
   try {
     await dbHelper.getConnection();
     const { username, password } = JSON.parse(event.body);
@@ -11,7 +11,6 @@ const login = async (event) => {
       password,
     };
 
-    // gerar um token jwt e retornar para o front
     const token = await userService.loginUser(user);
 
     return {
@@ -22,6 +21,7 @@ const login = async (event) => {
       },
     };
   } catch (error) {
+    console.error(error);
     return {
       statusCode: 500,
       body: {
@@ -29,24 +29,6 @@ const login = async (event) => {
       },
     };
   }
-};
-
-const handler = async (event) => {
-  const httpMethod = event.httpMethod.toUpperCase();
-  let response = {};
-
-  switch (httpMethod) {
-    case 'POST':
-      response = await login(event);
-      break;
-    default:
-      response = {
-        statusCode: 405,
-        body: JSON.stringify({ message: 'Method Not Allowed' }),
-      };
-  }
-
-  return response;
 };
 
 module.exports = { handler };
