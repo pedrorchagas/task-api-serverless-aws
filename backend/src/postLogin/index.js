@@ -24,9 +24,9 @@ const handler = async (event) => {
     console.error(error);
     return {
       statusCode: 500,
-      body: {
+      body: JSON.stringify({
         message: 'Não foi possível realizar o login',
-      },
+      }),
     };
   }
 };
