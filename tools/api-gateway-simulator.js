@@ -4,8 +4,9 @@
  */
 
 const express = require('express');
-const signupRoute = require('../backend/api/signup/index');
-const loginRoute = require('../backend/api/login/index');
+const signupRoute = require('../backend/services/signup/index');
+const loginRoute = require('../backend/services/login/index');
+const subscribeRoute = require('../backend/services/subscribe')
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -37,6 +38,20 @@ app.post('/login', async (req, res) => {
     };
 
     const response = await loginRoute.handler(awsEvent);
+
+    res.status(response.statusCode).send(response.body);
+});
+
+app.get('/subscribe/:params', async (req, res) => {
+    const awsEvent = {
+        httpMethod: req.method,
+        path: req.path,
+        queryStringParameters: req.query,
+        headers: req.headers,
+        body: JSON.stringify(req.body),
+    };
+
+    const response = await subscribeRoute.handler(awsEvent);
 
     res.status(response.statusCode).send(response.body);
 });
