@@ -1,5 +1,7 @@
+const signupController = require('./controllers/signup');
+
 const userService = require('../services/user');
-const dbHelper = require('../helpers/dbHelper');
+const dbHelper = require('../shared/dbHelper');
 
 const create = async (event) => {
   await dbHelper.getConnection();
@@ -31,4 +33,22 @@ const create = async (event) => {
   };
 };
 
-module.exports = { create };
+const handler = async (event) => {
+  const httpMethod = event.httpMethod.toUpperCase();
+  let response = {};
+
+  switch (httpMethod) {
+    case 'POST':
+      response = await create(event);
+      break;
+    default:
+      response = {
+        statusCode: 405,
+        body: JSON.stringify({ message: 'Method Not Allowed' }),
+      };
+  }
+
+  return response;
+};
+
+module.exports = { handler };
