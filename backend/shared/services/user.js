@@ -8,7 +8,7 @@ const hashPassword = async (password) => {
 };
 
 const verifyPassword = async ({ inputPassword, storedHash }) => {
-  if (await argon2.verify(inputPassword, storedHash)) {
+  if (await argon2.verify(storedHash, inputPassword)) {
     return true;
   }
   return false;

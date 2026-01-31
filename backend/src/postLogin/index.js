@@ -1,7 +1,5 @@
-const signupLogin = require('./controllers/login');
-
-const userService = require('../services/user');
-const dbHelper = require('../helpers/dbHelper');
+const userService = require('../../shared/services/user');
+const dbHelper = require('../../shared/dbHelper');
 
 const login = async (event) => {
   try {
@@ -39,7 +37,7 @@ const handler = async (event) => {
 
   switch (httpMethod) {
     case 'POST':
-      response = await signupLogin.login(event);
+      response = await login(event);
       break;
     default:
       response = {
