@@ -25,7 +25,7 @@ const handler = async (event) => {
     return {
       statusCode: 201,
       body: JSON.stringify({
-        message: 'User signed up successfully',
+        message: 'Usuário cadastrado com sucesso!',
         token,
         user_id: user.id,
       }),

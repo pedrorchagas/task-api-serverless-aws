@@ -6,6 +6,7 @@
 const express = require('express');
 const postSignup = require('../src/postSignup/index');
 const postLogin = require('../src/postLogin/index');
+const getSubscribeOptions = require('../src/getSubscribeOptions/index');
 // const subscribeRoute = require('../backend/services/subscribe')
 
 const app = express();
@@ -42,19 +43,11 @@ app.post('/login', async (req, res) => {
   res.status(response.statusCode).send(response.body);
 });
 
-// app.get('/subscribe/:params', async (req, res) => {
-//   const awsEvent = {
-//     httpMethod: req.method,
-//     path: req.path,
-//     queryStringParameters: req.query,
-//     headers: req.headers,
-//     body: JSON.stringify(req.body),
-//   };
+app.get('/subscribe/options', async (req, res) => {
+  const response = await getSubscribeOptions.handler();
 
-//   //const response = await subscribeRoute.handler(awsEvent);
-
-//   res.status(response.statusCode).send(response.body);
-// });
+  res.status(response.statusCode).send(response.body);
+});
 
 // Inicia o servidor
 app.listen(PORT, '0.0.0.0', () => {
